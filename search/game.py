@@ -312,6 +312,7 @@ class Actions:
     reverseDirection = staticmethod(reverseDirection)
 
     def vectorToDirection(vector):
+        print(vector)
         dx, dy = vector
         if dy > 0:
             return Directions.NORTH

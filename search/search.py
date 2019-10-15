@@ -82,12 +82,51 @@ def depthFirstSearch(problem):
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
 
+    (successor, action, stepCost)
+ """
     print "Start:", problem.getStartState()
+    print "Goal State:", problem.goal
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    from game import Directions
+    stack = util.Stack()
+    goal_state = None
+    visited = set()
+
+    start_state = problem.getStartState()
+    stack.push( (None, start_state, None) )
+    visited.add(start_state)
+
+    dir_translator = {'South' : Directions.SOUTH , 'West' : Directions.WEST , 'East' : Directions.EAST, 'North': Directions.NORTH}
+
+    while not stack.isEmpty():
+        curr_node = stack.pop()
+        _, c_node, _ = curr_node
+
+        if problem.isGoalState(c_node):
+            goal_state = curr_node
+            break
+        else:
+            child_nodes = problem.getSuccessors(c_node)
+
+            for it_node in child_nodes:
+                child = it_node[0]
+                child_action = it_node[1]
+                if child not in visited:
+                    stack.push((curr_node, child, child_action))
+                    visited.add(child)
+
+    back_trace = []
+    iterator = goal_state
+
+    while iterator[0] != None:
+        father, _, action = iterator
+        back_trace.insert(0, dir_translator[action])
+        iterator = father
+
+    print(len(back_trace))
+    return back_trace
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
