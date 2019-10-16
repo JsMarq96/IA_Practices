@@ -125,7 +125,6 @@ def depthFirstSearch(problem):
         back_trace.insert(0, dir_translator[action])
         iterator = father
 
-    print(len(back_trace))
     return back_trace
 
 def breadthFirstSearch(problem):
