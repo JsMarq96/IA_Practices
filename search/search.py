@@ -72,36 +72,27 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch(problem):
+
+def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop):
     """
-    Search the deepest nodes in the search tree first.
-
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    (successor, action, stepCost)
- """
-    print "Start:", problem.getStartState()
-    print "Goal State:", problem.goal
-    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState())
-
+    Container of the default behaviour of the search problem, but with a abstraction
+    in the data strucutre part, in order to rehutilize this code in the multiple search
+    algortitmhs, like DFS and BFS.
+    The parameters are the problem, the start state and the actions of the data struct.
+    """
     from game import Directions
-    stack = util.Stack()
     goal_state = None
     visited = set()
 
-    start_state = problem.getStartState()
-    stack.push( (None, start_state, None) )
+    dataStruct_Add( (None, start_state, None) )
     visited.add(start_state)
 
-    dir_translator = {'South' : Directions.SOUTH , 'West' : Directions.WEST , 'East' : Directions.EAST, 'North': Directions.NORTH}
+    # For parsing the directions outputed in GetSuccessors, to actual directions
+    dir_translator = {'South' : Directions.SOUTH , 'West' : Directions.WEST , 'East' : Directions.EAST, 'North': Directions.NORTH,
+    'up' : Directions.NORTH, 'left' : Directions.WEST, 'right' : Directions.EAST, 'down' : Directions.SOUTH}
 
-    while not stack.isEmpty():
-        curr_node = stack.pop()
+    while not dataStruct_isEmpty():
+        curr_node = dataStruct_Pop()
         _, c_node, _ = curr_node
 
         if problem.isGoalState(c_node):
@@ -113,13 +104,15 @@ def depthFirstSearch(problem):
             for it_node in child_nodes:
                 child = it_node[0]
                 child_action = it_node[1]
+                # Visits unvisited node if necessary
                 if child not in visited:
-                    stack.push((curr_node, child, child_action))
+                    dataStruct_Add((curr_node, child, child_action))
                     visited.add(child)
 
     back_trace = []
     iterator = goal_state
 
+    # Unpack the goal_node hysory, parent by parent
     while iterator[0] != None:
         father, _, action = iterator
         back_trace.insert(0, dir_translator[action])
@@ -127,10 +120,31 @@ def depthFirstSearch(problem):
 
     return back_trace
 
+def depthFirstSearch(problem):
+    """
+    Search the deepest nodes in the search tree first.
+
+    Your search algorithm needs to return a list of actions that reaches the
+    goal. Make sure to implement a graph search algorithm.
+
+    To get started, you might want to try some of these simple commands to
+    understand the search problem that is being passed in:
+
+    print "Start:", problem.getStartState()
+    print "Goal State:", problem.goal
+    print "Is the start a goal?", problem.isGoalState(problem.getStartState())
+    print "Start's successors:", problem.getSuccessors(problem.getStartState()) """ 
+    stack = util.Stack()
+
+    start_state = problem.getStartState()
+    return searchStruct(problem, start_state, stack.isEmpty, stack.push, stack.pop)
+
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    queue = util.Queue()
+    start_state = problem.getStartState()
+    return searchStruct(problem, start_state, queue.isEmpty, queue.push, queue.pop)
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
