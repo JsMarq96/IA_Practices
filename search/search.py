@@ -74,6 +74,12 @@ def tinyMazeSearch(problem):
 
 
 def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop):
+    """
+    Container of the default behaviour of the search problem, but with a abstraction
+    in the data strucutre part, in order to rehutilize this code in the multiple search
+    algortitmhs, like DFS and BFS.
+    The parameters are the problem, the start state and the actions of the data struct.
+    """
     from game import Directions
     goal_state = None
     visited = set()
