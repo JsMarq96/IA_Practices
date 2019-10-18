@@ -122,13 +122,8 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
 
 def depthFirstSearch(problem):
     """
-    Search the deepest nodes in the search tree first.
-
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
+    Search the deepest nodes in the search tree first. Returns the actions list.
+    Uses the searchStruct function with the Stack functions.
 
     print "Start:", problem.getStartState()
     print "Goal State:", problem.goal
@@ -140,7 +135,10 @@ def depthFirstSearch(problem):
     return searchStruct(problem, start_state, stack.isEmpty, stack.push, stack.pop)
 
 def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
+    """
+    Search the shallowest nodes in the search tree first.
+    Uses the searchStruct function with the Queue functions.
+    """
 
     queue = util.Queue()
     start_state = problem.getStartState()
