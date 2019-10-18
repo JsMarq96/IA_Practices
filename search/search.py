@@ -87,10 +87,6 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
     dataStruct_Add( (None, start_state, None) )
     visited.add(start_state)
 
-    # For parsing the directions outputed in GetSuccessors, to actual directions
-    dir_translator = {'South' : Directions.SOUTH , 'West' : Directions.WEST , 'East' : Directions.EAST, 'North': Directions.NORTH,
-    'up' : Directions.NORTH, 'left' : Directions.WEST, 'right' : Directions.EAST, 'down' : Directions.SOUTH}
-
     while not dataStruct_isEmpty():
         curr_node = dataStruct_Pop()
         _, c_node, _ = curr_node
@@ -100,6 +96,7 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
             break
         else:
             child_nodes = problem.getSuccessors(c_node)
+            print('Successors of', c_node, child_nodes)
 
             for it_node in child_nodes:
                 child = it_node[0]
@@ -115,9 +112,9 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
     # Unpack the goal_node hysory, parent by parent
     while iterator[0] != None:
         father, _, action = iterator
-        back_trace.insert(0, dir_translator[action])
+        back_trace.insert(0, action)
         iterator = father
-
+    #print(back_trace, goal_state)
     return back_trace
 
 def depthFirstSearch(problem):
@@ -128,7 +125,7 @@ def depthFirstSearch(problem):
     print "Start:", problem.getStartState()
     print "Goal State:", problem.goal
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-    print "Start's successors:", problem.getSuccessors(problem.getStartState()) """ 
+    print "Start's successors:", problem.getSuccessors(problem.getStartState()) """
     stack = util.Stack()
 
     start_state = problem.getStartState()
@@ -146,8 +143,43 @@ def breadthFirstSearch(problem):
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from game import Directions
+    queue = util.PriorityQueue()
+    start_state = problem.getStartState()
+    goal_state = None
+    visited = set()
+
+    queue.push( (None, start_state, None), 0)
+    visited.add(start_state)
+
+    while not queue.isEmpty():
+        curr_node = queue.pop()
+        _, c_node, _ = curr_node
+
+        if problem.isGoalState(c_node):
+            goal_state = curr_node
+            break
+        else:
+            child_nodes = problem.getSuccessors(c_node)
+
+            for it_node in child_nodes:
+                child = it_node[0]
+                child_action = it_node[1]
+                # Visits unvisited node if necessary
+                if child not in visited:
+                    queue.push((curr_node, child, child_action), it_node[2])
+                    visited.add(child)
+
+    back_trace = []
+    iterator = goal_state
+
+    # Unpack the goal_node hysory, parent by parent
+    while iterator[0] != None:
+        father, _, action = iterator
+        back_trace.insert(0, action)
+        iterator = father
+
+    return back_trace
 
 def nullHeuristic(state, problem=None):
     """
