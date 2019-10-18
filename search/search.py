@@ -72,7 +72,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop, debug = False, dStrct = None):
+def searchStruct1(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop, debug = False, dStrct = None):
     """
     Container of the default behaviour of the search problem, but with a abstraction
     in the data strucutre part, in order to rehutilize this code in the multiple search
@@ -123,7 +123,7 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
     goal_route = None
     visited = set()
 
-    dataStruct_Add( (start_state, []) )
+    dataStruct_Add( (start_state, []) , 0)
 
     while not dataStruct_isEmpty():
         c_node, act_list = dataStruct_Pop()
@@ -135,7 +135,7 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
             for child, child_action, cost in problem.getSuccessors(c_node):
                 # Visits unvisited node if necessary
                 if child not in visited:
-                    dataStruct_Add((child, act_list + [ child_action ]))
+                    dataStruct_Add((child, act_list + [ child_action ]), cost)
 
             visited.add(c_node)
 
@@ -154,7 +154,10 @@ def depthFirstSearch(problem):
     stack = util.Stack()
 
     start_state = problem.getStartState()
-    return searchStruct(problem, start_state, stack.isEmpty, stack.push, stack.pop)
+
+    stackPush = lambda x, cost: stack.push(x)
+
+    return searchStruct(problem, start_state, stack.isEmpty, stackPush, stack.pop)
 
 def breadthFirstSearch(problem):
     """
@@ -164,47 +167,20 @@ def breadthFirstSearch(problem):
 
     queue = util.Queue()
     start_state = problem.getStartState()
-    return searchStruct(problem, start_state, queue.isEmpty, queue.push, queue.pop)
+
+    queuePush = lambda x, cost: queue.push(x)
+
+    return searchStruct(problem, start_state, queue.isEmpty, queuePush, queue.pop)
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     from game import Directions
     queue = util.PriorityQueue()
     start_state = problem.getStartState()
-    goal_state = None
-    visited = set()
 
-    queue.push( (None, start_state, None), 0)
-    visited.add(start_state)
+    #queuePush = lambda x, cost: queue.push(x, cost)
 
-    while not queue.isEmpty():
-        curr_node = queue.pop()
-        _, c_node, _ = curr_node
-
-        if problem.isGoalState(c_node):
-            goal_state = curr_node
-            break
-        else:
-            child_nodes = problem.getSuccessors(c_node)
-
-            for it_node in child_nodes:
-                child = it_node[0]
-                child_action = it_node[1]
-                # Visits unvisited node if necessary
-                if child not in visited:
-                    queue.push((curr_node, child, child_action), it_node[2])
-                    visited.add(child)
-
-    back_trace = []
-    iterator = goal_state
-
-    # Unpack the goal_node hysory, parent by parent
-    while iterator[0] != None:
-        father, _, action = iterator
-        back_trace.insert(0, action)
-        iterator = father
-
-    return back_trace
+    return searchStruct(problem, start_state, queue.isEmpty,  queue.push, queue.pop)
 
 def nullHeuristic(state, problem=None):
     """
