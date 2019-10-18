@@ -173,14 +173,48 @@ def breadthFirstSearch(problem):
     return searchStruct(problem, start_state, queue.isEmpty, queuePush, queue.pop)
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
+    """Search the node of least total cost first.
     from game import Directions
+    """
+    ''' VER 1.0  -> PETAN TODOS MENOS UNO'''
     queue = util.PriorityQueue()
     start_state = problem.getStartState()
 
     #queuePush = lambda x, cost: queue.push(x, cost)
 
     return searchStruct(problem, start_state, queue.isEmpty,  queue.push, queue.pop)
+    ''' VER 2.0  -> PETAN 2 PERO INCOROPORA REORDENACION'''
+    queue = util.PriorityQueue()
+    start_state = problem.getStartState()
+    goal_route = None
+    visited = set()
+    frontier_dict = { start_state : None}
+
+    queue.push( (start_state, []) , 0)
+
+    while not queue.isEmpty():
+        # Remove Value from the Queue, and from the frontier
+        c_node, act_list = queue.pop()
+        del frontier_dict[c_node]
+
+        if problem.isGoalState(c_node):
+            return act_list
+
+        if c_node not in visited:
+            for child, child_action, cost in problem.getSuccessors(c_node):
+                
+                if child not in frontier_dict: # If the child have not been visited, queue it
+                    new_node = (child, act_list + [ child_action ])
+                    frontier_dict[child] = new_node
+                    queue.push(new_node, cost)
+                else: # If Its in the queue, we update the cost
+                    node_to_update = frontier_dict[child]
+                    queue.update(node_to_update, cost)
+
+            visited.add(c_node)
+
+    print(goal_route)
+    return None
 
 def nullHeuristic(state, problem=None):
     """
