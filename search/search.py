@@ -72,6 +72,45 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop, debug = False, dStrct = None):
+    """
+    Container of the default behaviour of the search problem, but with a abstraction
+    in the data strucutre part, in order to rehutilize this code in the multiple search
+    algortitmhs, like DFS and BFS.
+    The parameters are the problem, the start state and the actions of the data struct.
+    """
+    from game import Directions
+    goal_route = None
+    visited = set()
+
+    dataStruct_Add( (start_state, []) )
+    visited.add(start_state)
+
+    while not dataStruct_isEmpty():
+        curr_node = dataStruct_Pop()
+        c_node, act_list = curr_node
+
+        if debug:
+            print(curr_node, dStrct)
+        if problem.isGoalState(c_node):
+            return act_list
+    
+
+        for child, child_action, cost in problem.getSuccessors(c_node):
+            # Visits unvisited node if necessary
+            if debug:
+                print(child, child not in visited)
+            if child not in visited:
+                child_list = act_list + [ child_action ]
+                if debug:
+                    print(child_list)
+                dataStruct_Add((child, child_list))
+
+        visited.add(c_node)
+
+    print(goal_route)
+    #print('*********************')
+    return None
 
 def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop):
     """
@@ -81,41 +120,27 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
     The parameters are the problem, the start state and the actions of the data struct.
     """
     from game import Directions
-    goal_state = None
+    goal_route = None
     visited = set()
 
-    dataStruct_Add( (None, start_state, None) )
-    visited.add(start_state)
+    dataStruct_Add( (start_state, []) )
 
     while not dataStruct_isEmpty():
-        curr_node = dataStruct_Pop()
-        _, c_node, _ = curr_node
+        c_node, act_list = dataStruct_Pop()
 
         if problem.isGoalState(c_node):
-            goal_state = curr_node
-            break
-        else:
-            child_nodes = problem.getSuccessors(c_node)
-            print('Successors of', c_node, child_nodes)
+            return act_list
 
-            for it_node in child_nodes:
-                child = it_node[0]
-                child_action = it_node[1]
+        if c_node not in visited:
+            for child, child_action, cost in problem.getSuccessors(c_node):
                 # Visits unvisited node if necessary
                 if child not in visited:
-                    dataStruct_Add((curr_node, child, child_action))
-                    visited.add(child)
+                    dataStruct_Add((child, act_list + [ child_action ]))
 
-    back_trace = []
-    iterator = goal_state
+            visited.add(c_node)
 
-    # Unpack the goal_node hysory, parent by parent
-    while iterator[0] != None:
-        father, _, action = iterator
-        back_trace.insert(0, action)
-        iterator = father
-    #print(back_trace, goal_state)
-    return back_trace
+    print(goal_route)
+    return None
 
 def depthFirstSearch(problem):
     """
