@@ -123,10 +123,10 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
     goal_route = None
     visited = set()
 
-    dataStruct_Add( (start_state, []) , 0)
+    dataStruct_Add( (start_state, [], 0) , 0)
 
     while not dataStruct_isEmpty():
-        c_node, act_list = dataStruct_Pop()
+        c_node, act_list, current_cost = dataStruct_Pop()
 
         if problem.isGoalState(c_node):
             return act_list
@@ -135,7 +135,7 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
             for child, child_action, cost in problem.getSuccessors(c_node):
                 # Visits unvisited node if necessary
                 if child not in visited:
-                    dataStruct_Add((child, act_list + [ child_action ]), cost)
+                    dataStruct_Add((child, act_list + [ child_action ], current_cost + cost), current_cost + cost)
 
             visited.add(c_node)
 
@@ -183,38 +183,6 @@ def uniformCostSearch(problem):
     #queuePush = lambda x, cost: queue.push(x, cost)
 
     return searchStruct(problem, start_state, queue.isEmpty,  queue.push, queue.pop)
-    ''' VER 2.0  -> PETAN 2 PERO INCOROPORA REORDENACION'''
-    queue = util.PriorityQueue()
-    start_state = problem.getStartState()
-    goal_route = None
-    visited = set()
-    frontier_dict = { start_state : None}
-
-    queue.push( (start_state, []) , 0)
-
-    while not queue.isEmpty():
-        # Remove Value from the Queue, and from the frontier
-        c_node, act_list = queue.pop()
-        del frontier_dict[c_node]
-
-        if problem.isGoalState(c_node):
-            return act_list
-
-        if c_node not in visited:
-            for child, child_action, cost in problem.getSuccessors(c_node):
-                
-                if child not in frontier_dict: # If the child have not been visited, queue it
-                    new_node = (child, act_list + [ child_action ])
-                    frontier_dict[child] = new_node
-                    queue.push(new_node, cost)
-                else: # If Its in the queue, we update the cost
-                    node_to_update = frontier_dict[child]
-                    queue.update(node_to_update, cost)
-
-            visited.add(c_node)
-
-    print(goal_route)
-    return None
 
 def nullHeuristic(state, problem=None):
     """
@@ -225,11 +193,15 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    queue = PriorityQueueWithFunction()
+
+    prior_func = lambda x:  heuristic(x[0], problem) + x[2]
+
+    queue = util.PriorityQueueWithFunction(prior_func)
     start_state = problem.getStartState()
 
+    queuePush = lambda x, cost: queue.push(x)
 
-    return searchStruct(problem, start_state, queue.isEmpty,  queue.push, queue.pop)
+    return searchStruct(problem, start_state, queue.isEmpty,  queuePush, queue.pop)
 
 
 # Abbreviations
