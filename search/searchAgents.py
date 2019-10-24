@@ -288,9 +288,9 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.corners_to_visit = [ self.corners[0], self.corners[1], self.corners[2] ,self.corners[3] ]
+        self.corners_list = [ self.corners[0], self.corners[1], self.corners[2] ,self.corners[3] ]
         self.start_state = (frozenset(), self.startingPosition)
-        self.goal_state = (frozenset(self.corners_to_visit), None)
+        self.goal_state = (frozenset(self.corners_list), None)
 
 
     def getStartState(self):
@@ -349,6 +349,93 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+def euclideanHeuristicToPoint(point_1, point_2):
+    "The Euclidean distance heuristic from Point 1 to 2"
+    return ( (point_1[0] - point_2[0]) ** 2 + (point_1[1] - point_2[1]) ** 2 ) ** 0.5
+
+def numberOfWalls(point_1, point_2, walls):
+    n_steps = 0
+    n_walls = 0
+
+    def mapToLookup(v1, v2):
+        import math
+
+        degrees = math.degrees(math.atan2(v1, v2))
+
+        if degrees < 0:
+            degrees += 360
+
+        index = int(round(degrees / 45))
+        directions = [(0,1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1) ]
+        
+        return directions[index]
+
+    it_dir_x = int(point_1[0])
+    it_dir_y = int(point_1[1])
+
+    while it_dir_x != point_2[0] and it_dir_y != point_2[1]:
+        if not walls[it_dir_x][it_dir_y]:
+            n_walls += 1
+
+        dir_x, dir_y = mapToLookup(point_2[0] - it_dir_x, point_2[1] - it_dir_y)
+
+        it_dir_x += dir_x
+        it_dir_y += dir_y
+
+        n_steps += 1
+
+    return n_walls
+
+def cornersHeuristicALT(state, problem):
+    """
+    A heuristic for the CornersProblem that you defined.
+
+      state:   The current search state
+               (a data structure you chose in your search problem)
+
+      problem: The CornersProblem instance for this layout.
+
+    This function should always return a number that is a lower bound on the
+    shortest path from the state to a goal of the problem; i.e.  it should be
+    admissible (as well as consistent).
+    """
+    corners = problem.corners # These are the corner coordinates
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+
+    #metric_func = euclideanHeuristicToPoint
+    metric_func = util.manhattanDistance
+    #metric_func = lambda start, state: numberOfWalls(start, state, walls)
+    #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .5 + util.manhattanDistance(start, state) * .5
+    #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .4 + euclideanHeuristicToPoint(start, state) * .4
+    #metric_func = lambda start, state: util.manhattanDistance(start, state) * .5 + euclideanHeuristicToPoint(start, state) * .5
+
+
+    unvisited_corners = [x for x in corners if not x in state[0]]
+
+    total_heuristic = 0.
+
+    queue = util.PriorityQueue()
+
+    queue.push( ([state[1]], 0), 0 )
+
+    min_heuristic = 9999
+    while not queue.isEmpty():
+        state_list, cost = queue.pop()
+
+        if len(state_list) == len(unvisited_corners):
+            return cost
+            '''if cost < min_heuristic:
+                min_heuristic = cost'''
+
+        unvisited_corners = [x for x in corners if not x in state_list]
+
+        for new_corner in unvisited_corners:
+            new_state_cost = metric_func(state_list[-1], new_corner)
+            queue.push( (state_list + [new_corner], cost + new_state_cost), cost + new_state_cost)
+
+
+    return min_heuristic # Default to trivial solution
+
 
 def cornersHeuristic(state, problem):
     """
@@ -366,8 +453,41 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    'Expended nodes on Medium Size: 806'
+    #metric_func = euclideanHeuristicToPoint
+
+    'Expended nodes on Medium Size: 692'
+    metric_func = util.manhattanDistance
+
+    'Expended nodes on Medium Size: 1529'
+    #metric_func = lambda start, state: numberOfWalls(start, state, walls)
+
+    'Expended nodes on Medium Size: 1323'
+    #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .5 + util.manhattanDistance(start, state) * .5
+    
+    'Expended nodes on Medium Size: 1145'
+    #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .4 + euclideanHeuristicToPoint(start, state) * .4
+    
+    'Expended nodes on Medium Size: 743'
+    #metric_func = lambda start, state: util.manhattanDistance(start, state) * .5 + euclideanHeuristicToPoint(start, state) * .5
+
+
+    unvisited_corners = [x for x in corners if not x in state[0]]
+
+    total_heuristic = 0.
+
+    start_state = state[1]
+    while len(unvisited_corners) != 0:
+
+        heu, start_state = min([(metric_func(start_state, state), state) for state in unvisited_corners])
+
+        unvisited_corners.remove(start_state)
+
+        total_heuristic += heu
+        #n_steps, n_walls = numberOfWalls(state[1], corner, walls)
+
+
+    return total_heuristic # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
