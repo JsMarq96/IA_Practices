@@ -288,9 +288,9 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.corners_to_visit = [ self.corners[0], self.corners[1], self.corners[2] ,self.corners[4] ]
-        self.start_state = (set(), self.startingPosition)
-        self.goal_state = (set(self.corners_to_visit), None)
+        self.corners_to_visit = [ self.corners[0], self.corners[1], self.corners[2] ,self.corners[3] ]
+        self.start_state = (frozenset(), self.startingPosition)
+        self.goal_state = (frozenset(self.corners_to_visit), None)
 
 
     def getStartState(self):
@@ -316,22 +316,22 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
+        visited_corners = state[0]
         curr_x, curr_y = state[1]
+
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             dx, dy = Actions.directionToVector(action)
-            nextx, nexty = int(x + dx), int(y + dy)
+            nextx, nexty = int(curr_x + dx), int(curr_y + dy)
 
             if not self.walls[nextx][nexty]:
-                successor.append( ((), ) )
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+                new_pos = (nextx, nexty)
 
-            "*** YOUR CODE HERE ***"
+                curr_set = set(visited_corners)
+                if new_pos in self.corners and new_pos not in curr_set:
+                    curr_set.add(new_pos)
+
+                successors.append( ((frozenset(curr_set), new_pos), action, 1) )
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
