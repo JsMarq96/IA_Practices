@@ -650,6 +650,16 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
+        
+        food = gameState.data.food.asList()
+
+        def nearHeuristic(state, problem):
+            return min([mazeDistance(state, x, gameState) for x in food])
+        
+
+        #searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop)
+        #return search.aStarSearch(problem, nearHeuristic)
+        return search.breadthFirstSearch(problem)
 
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
@@ -687,8 +697,10 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         """
         x,y = state
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if self.food[x][ y]:
+            return True
+        else:
+            return False
 
 def mazeDistance(point1, point2, gameState):
     """
@@ -700,6 +712,7 @@ def mazeDistance(point1, point2, gameState):
 
     This might be a useful helper function for your ApproximateSearchAgent.
     """
+    print(point2)
     x1, y1 = point1
     x2, y2 = point2
     walls = gameState.getWalls()
