@@ -517,6 +517,57 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+class CoinCluster:
+    def __init__(self, walls):
+        self.element_list = []
+        self.num_walls = 0
+        self.walls = walls
+
+    '''HELPER FUNCTIONS'''
+    def __iter__(self):
+        return self
+
+    def __getitem__(self, pos):
+        return self.element_list[pos]
+
+    def __len__(self):
+        return len(self.element_list)
+
+    def __contains__(self, item):
+        return item in self.element_list
+
+    def __iadd__(self, new_pos):
+        if not new_pos in self.element_list:
+            self.element_list.append(new_pos)
+            self.num_walls += len(getWallsArroundPos(new_pos, self.walls))
+        return self
+
+    def __isub__(self, other):
+        if other in self.element_list:
+            self.element_list.remove(other)
+            self.num_walls -= len(getWallsArroundPos(other, self.walls))
+        return self
+
+    ''' LOGIC FUNCTIONS '''
+    def isPartOfTheCluster(self, new_pos, search_range = 1.0):
+        count = len([item for item in self.element_list if euclideanHeuristicToPoint(new_pos, item) == 1.0])
+        return count > 0
+
+    def getFurthestInCluster(self, reference, metric = util.manhattanDistance):
+        return max([ (metric(reference, item), item) for item in self.element_list ])
+
+    def getNumOfNeighbooringWalls(self):
+        return self.num_walls
+
+    def getScore(self):
+        return len(self.element_list)
+
+def getWallsArroundPos(pos, walls):
+        p_x , p_y = pos
+        walls_list = []
+        for p_wall_x in [1, -1]:
+            walls_list += [(p_x + p_wall_x, p_y + p_wall_y) for p_wall_y in [1, -1] if walls[p_x + p_wall_x][p_y + p_wall_y]]
+        return walls_list
 
 def coinClusteringHeuristic(position, foodGrid, problem):
     '''
@@ -528,26 +579,35 @@ def coinClusteringHeuristic(position, foodGrid, problem):
 
          Performance: 12517 2/4
     '''
-
-    # First, we create the cluster list
     cluster_list = []
+    walls = problem.walls
 
     for food in foodGrid.asList():
         for cluster in cluster_list:
             # Check if the current item is part of any cluster:
             #  If the distance between any of the cluster elements and the current food is 1, is part
             #  of the cluster
-            cluster_neighboors = [item for item in cluster if euclideanHeuristicToPoint(food, item) == 1.0]
-            if len(cluster_neighboors) > 0:
-                cluster.append(food)
+            if cluster.isPartOfTheCluster(food):
+                cluster += food
                 break
         else:
             # If it goes thought all the clusters, and istn near everyone, create new cluster
-            cluster_list.append([food])
+            new_cluster = CoinCluster(walls)
+            new_cluster += food
+            cluster_list.append(new_cluster)
 
 
     start_pos = position
     heuristic = 0
+
+    cluster_queue = util.Stack()
+
+    cluster_queue.push(start_pos)
+
+    while not cluster_queue.isEmpty():
+        curr_cluster = cluster_queue.pop()
+
+
 
     while len(cluster_list) > 0:
         min_dist = 9999.
@@ -556,19 +616,20 @@ def coinClusteringHeuristic(position, foodGrid, problem):
 
         for cluster in cluster_list:
             # Get farthest point of the cluster from the current position
-            cost, position = max([ (util.manhattanDistance(start_pos, item), item) for item in cluster])
+            cost, curr_pos = cluster.getFurthestInCluster(start_pos)
+            cost += cluster.getNumOfNeighbooringWalls() * 0.5
 
             # Select the cluster if its less than the curretn minimun distance
             if cost < min_dist:
                 min_dist = cost
                 min_cluster = cluster
-                min_pos = position
+                min_pos = curr_pos
 
         # Remove cluster and update the position
         cluster_list.remove(min_cluster)
         start_pos = min_pos
 
-        heuristic += len(min_cluster)
+        heuristic += min_cluster.getScore()
         #most_val, most_val_cluster = max([ (len(clust), clust) for clust in cluster_list ])
 
     return heuristic
@@ -686,7 +747,6 @@ def mazeDistance(point1, point2, gameState):
 
     This might be a useful helper function for your ApproximateSearchAgent.
     """
-    print(point2)
     x1, y1 = point1
     x2, y2 = point2
     walls = gameState.getWalls()
