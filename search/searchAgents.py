@@ -350,14 +350,27 @@ class CornersProblem(search.SearchProblem):
         return len(actions)
 
 def euclideanHeuristicToPoint(point_1, point_2):
-    "The Euclidean distance heuristic from Point 1 to 2"
+    '''
+    Euclidean distance heuristic from point 1 to point 2
+    Note: Based on the Euclidean Heurisitic provided
+    '''
     return ( (point_1[0] - point_2[0]) ** 2 + (point_1[1] - point_2[1]) ** 2 ) ** 0.5
 
 def numberOfWalls(point_1, point_2, walls):
+    '''
+    Heurisitic function that counts the number of walls in a straight line from
+    point 1 to point 2.
+    It was an attempt to determine the complexity and add it  to a distance
+    NOTE: It has incosistency problems (by design)
+    '''
     n_steps = 0
     n_walls = 0
 
     def mapToLookup(v1, v2):
+        '''
+        Helper function that translates the direction from the vector v1-v2
+        to a unit vectro to move in a grid
+        '''
         import math
 
         degrees = math.degrees(math.atan2(v1, v2))
@@ -374,9 +387,11 @@ def numberOfWalls(point_1, point_2, walls):
     it_dir_y = int(point_1[1])
 
     while it_dir_x != point_2[0] and it_dir_y != point_2[1]:
+        # If there is a wall, increment the counter
         if not walls[it_dir_x][it_dir_y]:
             n_walls += 1
 
+        # Advance one spet in the direccion curr_point-goal (point_2)
         dir_x, dir_y = mapToLookup(point_2[0] - it_dir_x, point_2[1] - it_dir_y)
 
         it_dir_x += dir_x
@@ -453,6 +468,8 @@ def cornersHeuristic(state, problem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
+    'Different Heuristic Functions tested:'
+
     'Expended nodes on Medium Size: 806'
     #metric_func = euclideanHeuristicToPoint
 
@@ -484,8 +501,6 @@ def cornersHeuristic(state, problem):
         unvisited_corners.remove(start_state)
 
         total_heuristic += heu
-        #n_steps, n_walls = numberOfWalls(state[1], corner, walls)
-
 
     return total_heuristic # Default to trivial solution
 
@@ -551,6 +566,62 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+
+def coinClusteringHeuristic(position, foodGrid, problem):
+    '''
+        Heuristic function that Focuses on finding the nearest cluster of coins:
+         1) Fisrt it clusters the coins based on the remain coins (Optimize this)
+         2) For each cluster, we get the direction of the furthest point in the cluster
+            if that distance, select the minuum of all
+         3) We do this until we visit every cluster, and calculate the cost
+
+         Performance: 12517 2/4
+    '''
+
+    # First, we create the cluster list
+    cluster_list = []
+
+    for food in foodGrid.asList():
+        for cluster in cluster_list:
+            # Check if the current item is part of any cluster:
+            #  If the distance between any of the cluster elements and the current food is 1, is part
+            #  of the cluster
+            cluster_neighboors = [item for item in cluster if euclideanHeuristicToPoint(food, item) == 1.0]
+            if len(cluster_neighboors) > 0:
+                cluster.append(food)
+                break
+        else:
+            # If it goes thought all the clusters, and istn near everyone, create new cluster
+            cluster_list.append([food])
+
+
+    start_pos = position
+    heuristic = 0
+
+    while len(cluster_list) > 0:
+        min_dist = 9999.
+        min_cluster = None
+        min_pos = None
+
+        for cluster in cluster_list:
+            # Get farthest point of the cluster from the current position
+            cost, position = max([ (util.manhattanDistance(start_pos, item), item) for item in cluster])
+
+            # Select the cluster if its less than the curretn minimun distance
+            if cost < min_dist:
+                min_dist = cost
+                min_cluster = cluster
+                min_pos = position
+
+        # Remove cluster and update the position
+        cluster_list.remove(min_cluster)
+        start_pos = min_pos
+
+        heuristic += len(min_cluster)
+        #most_val, most_val_cluster = max([ (len(clust), clust) for clust in cluster_list ])
+
+    return heuristic
+
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -582,46 +653,8 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
 
-    # Coin clustering with distance of 1.0:
-
-    cluster_list = []
-
-    for food in foodGrid.asList():
-        for cluster in cluster_list:
-            cluster_neighboors = [item for item in cluster if euclideanHeuristicToPoint(food, item) == 1.0]
-            if len(cluster_neighboors) > 0:
-                cluster.append(food)
-                break
-        else:
-            cluster_list.append([food])
-
-
-    start_pos = position
-
-    heuristic = 0
-
-    while len(cluster_list) > 0:
-        min_dist = 9999.
-        min_cluster = None
-        min_pos = None
-
-        for cluster in cluster_list:
-            cost, position = max([ (util.manhattanDistance(start_pos, item), item) for item in cluster])
-
-            if cost < min_dist:
-                min_dist = cost
-                min_cluster = cluster
-                min_pos = position
-
-        cluster_list.remove(min_cluster)
-        start_pos = min_pos
-
-        heuristic += len(min_cluster) * .95
-        #most_val, most_val_cluster = max([ (len(clust), clust) for clust in cluster_list ])
-
-        #
-    "*** YOUR CODE HERE ***"
-    return heuristic
+    return coinClusteringHeuristic(position, foodGrid, problem)
+   
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -650,19 +683,9 @@ class ClosestDotSearchAgent(SearchAgent):
         food = gameState.getFood()
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
-        
-        food = gameState.data.food.asList()
-
-        def nearHeuristic(state, problem):
-            return min([mazeDistance(state, x, gameState) for x in food])
-        
-
-        #searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop)
-        #return search.aStarSearch(problem, nearHeuristic)
+                
+        # Use breath First Search to locate the nearest Dot
         return search.breadthFirstSearch(problem)
-
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
