@@ -578,10 +578,50 @@ def foodHeuristic(state, problem):
     value, try: problem.heuristicInfo['wallCount'] = problem.walls.count()
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
+    1 hora a las 2
     """
     position, foodGrid = state
+
+    # Coin clustering with distance of 1.0:
+
+    cluster_list = []
+
+    for food in foodGrid.asList():
+        for cluster in cluster_list:
+            cluster_neighboors = [item for item in cluster if euclideanHeuristicToPoint(food, item) == 1.0]
+            if len(cluster_neighboors) > 0:
+                cluster.append(food)
+                break
+        else:
+            cluster_list.append([food])
+
+
+    start_pos = position
+
+    heuristic = 0
+
+    while len(cluster_list) > 0:
+        min_dist = 9999.
+        min_cluster = None
+        min_pos = None
+
+        for cluster in cluster_list:
+            cost, position = max([ (util.manhattanDistance(start_pos, item), item) for item in cluster])
+
+            if cost < min_dist:
+                min_dist = cost
+                min_cluster = cluster
+                min_pos = position
+
+        cluster_list.remove(min_cluster)
+        start_pos = min_pos
+
+        heuristic += len(min_cluster) * .95
+        #most_val, most_val_cluster = max([ (len(clust), clust) for clust in cluster_list ])
+
+        #
     "*** YOUR CODE HERE ***"
-    return 0
+    return heuristic
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
