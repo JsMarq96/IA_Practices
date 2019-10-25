@@ -287,7 +287,8 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0 # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
-        "*** YOUR CODE HERE ***"
+        
+        ''' State structure = (Visited set, current position) '''        
         self.corners_list = [ self.corners[0], self.corners[1], self.corners[2] ,self.corners[3] ]
         self.start_state = (frozenset(), self.startingPosition)
         self.goal_state = (frozenset(self.corners_list), None)
@@ -422,7 +423,7 @@ def cornersHeuristic(state, problem):
     'Expended nodes on Medium Size: 806 (Euclidean Distance)'
     #metric_func = euclideanHeuristicToPoint
 
-    'Expended nodes on Medium Size: 692 (Manhattan Distance)'
+    'Expended nodes on Medium Size: 692 (Manhattan Distance) (Best result)'
     metric_func = util.manhattanDistance
 
     'Expended nodes on Medium Size: 1529 (Number of walls)'
@@ -518,6 +519,9 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchType = FoodSearchProblem
 
 class CoinCluster:
+    '''
+    Class that manages Coin clusters in a cleaner way
+    '''
     def __init__(self, walls):
         self.element_list = []
         self.num_walls = 0
@@ -537,12 +541,14 @@ class CoinCluster:
         return item in self.element_list
 
     def __iadd__(self, new_pos):
+        ''' Add a element to the cluster '''
         if not new_pos in self.element_list:
             self.element_list.append(new_pos)
             self.num_walls += len(getWallsArroundPos(new_pos, self.walls))
         return self
 
     def __isub__(self, other):
+        ''' Removes a element from the cluster '''
         if other in self.element_list:
             self.element_list.remove(other)
             self.num_walls -= len(getWallsArroundPos(other, self.walls))
@@ -550,24 +556,32 @@ class CoinCluster:
 
     ''' LOGIC FUNCTIONS '''
     def isPartOfTheCluster(self, new_pos, search_range = 1.0):
-        count = len([item for item in self.element_list if euclideanHeuristicToPoint(new_pos, item) == 1.0])
+        ''' With a given range, returns if the given coordinates is a neighboor to the cluster '''
+        count = len([item for item in self.element_list if euclideanHeuristicToPoint(new_pos, item) == search_range])
         return count > 0
 
     def getFurthestInCluster(self, reference, metric = util.manhattanDistance):
+        ''' With a given point, get the element in the cluster that is furthest away '''
         return max([ (metric(reference, item), item) for item in self.element_list ])
 
     def getNumOfNeighbooringWalls(self):
+        ''' Return the number of walls of the Cluster '''
         return self.num_walls
 
     def getScore(self):
+        ''' Returns the score obtaibned in the cluster '''
         return len(self.element_list)
 
 def getWallsArroundPos(pos, walls):
-        p_x , p_y = pos
-        walls_list = []
-        for p_wall_x in [1, -1]:
-            walls_list += [(p_x + p_wall_x, p_y + p_wall_y) for p_wall_y in [1, -1] if walls[p_x + p_wall_x][p_y + p_wall_y]]
-        return walls_list
+    '''
+    Utility function to count walls arround a position.
+        It look up the neighbooring positions
+    '''
+    p_x , p_y = pos
+    walls_list = []
+    for p_wall_x in [1, -1]:
+        walls_list += [(p_x + p_wall_x, p_y + p_wall_y) for p_wall_y in [1, -1] if walls[p_x + p_wall_x][p_y + p_wall_y]]
+    return walls_list
 
 def coinClusteringHeuristic(position, foodGrid, problem):
     '''
@@ -599,15 +613,6 @@ def coinClusteringHeuristic(position, foodGrid, problem):
 
     start_pos = position
     heuristic = 0
-
-    cluster_queue = util.Stack()
-
-    cluster_queue.push(start_pos)
-
-    while not cluster_queue.isEmpty():
-        curr_cluster = cluster_queue.pop()
-
-
 
     while len(cluster_list) > 0:
         min_dist = 9999.
@@ -661,9 +666,11 @@ def foodHeuristic(state, problem):
     value, try: problem.heuristicInfo['wallCount'] = problem.walls.count()
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
-    1 hora a las 2
     """
     position, foodGrid = state
+
+    # NOTE: There where plans of adding a heuristic based on the number of walls surrounding
+    # the clusters, but due to inconsistency reasons, it was discarded
 
     return coinClusteringHeuristic(position, foodGrid, problem)
    

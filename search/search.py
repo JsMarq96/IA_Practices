@@ -72,46 +72,6 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def searchStruct1(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop, debug = False, dStrct = None):
-    """
-    Container of the default behaviour of the search problem, but with a abstraction
-    in the data strucutre part, in order to rehutilize this code in the multiple search
-    algortitmhs, like DFS and BFS.
-    The parameters are the problem, the start state and the actions of the data struct.
-    """
-    from game import Directions
-    goal_route = None
-    visited = set()
-
-    dataStruct_Add( (start_state, []) )
-    visited.add(start_state)
-
-    while not dataStruct_isEmpty():
-        curr_node = dataStruct_Pop()
-        c_node, act_list = curr_node
-
-        if debug:
-            print(curr_node, dStrct)
-        if problem.isGoalState(c_node):
-            return act_list
-    
-
-        for child, child_action, cost in problem.getSuccessors(c_node):
-            # Visits unvisited node if necessary
-            if debug:
-                print(child, child not in visited)
-            if child not in visited:
-                child_list = act_list + [ child_action ]
-                if debug:
-                    print(child_list)
-                dataStruct_Add((child, child_list))
-
-        visited.add(c_node)
-
-    print(goal_route)
-    #print('*********************')
-    return None
-
 def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataStruct_Pop):
     """
     Container of the default behaviour of the search problem, but with a abstraction
@@ -133,13 +93,10 @@ def searchStruct(problem, start_state, dataStruct_isEmpty, dataStruct_Add, dataS
 
         if c_node not in visited:
             for child, child_action, cost in problem.getSuccessors(c_node):
-                # Visits unvisited node if necessary
                 if child not in visited:
                     dataStruct_Add((child, act_list + [ child_action ], current_cost + cost), current_cost + cost)
 
             visited.add(c_node)
-
-    print(goal_route)
     return None
 
 def depthFirstSearch(problem):
@@ -180,8 +137,6 @@ def uniformCostSearch(problem):
     queue = util.PriorityQueue()
     start_state = problem.getStartState()
 
-    #queuePush = lambda x, cost: queue.push(x, cost)
-
     return searchStruct(problem, start_state, queue.isEmpty,  queue.push, queue.pop)
 
 def nullHeuristic(state, problem=None):
@@ -197,12 +152,12 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     prior_func = lambda x:  heuristic(x[0], problem) + x[2]
 
     queue = util.PriorityQueueWithFunction(prior_func)
+
     start_state = problem.getStartState()
 
     queuePush = lambda x, cost: queue.push(x)
 
     return searchStruct(problem, start_state, queue.isEmpty,  queuePush, queue.pop)
-
 
 # Abbreviations
 bfs = breadthFirstSearch
