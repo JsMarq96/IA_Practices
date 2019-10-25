@@ -470,22 +470,24 @@ def cornersHeuristic(state, problem):
 
     'Different Heuristic Functions tested:'
 
-    'Expended nodes on Medium Size: 806'
+    'Expended nodes on Medium Size: 806 (Euclidean Distance)'
     #metric_func = euclideanHeuristicToPoint
 
-    'Expended nodes on Medium Size: 692'
+    'Expended nodes on Medium Size: 692 (Manhattan Distance)'
     metric_func = util.manhattanDistance
 
-    'Expended nodes on Medium Size: 1529'
+    'Expended nodes on Medium Size: 1529 (Number of walls)'
     #metric_func = lambda start, state: numberOfWalls(start, state, walls)
 
-    'Expended nodes on Medium Size: 1323'
+    # NOTE: We also experimented on convining the different Heuristics
+
+    'Expended nodes on Medium Size: 1323 (number of walls + Manhatan Distance)'
     #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .5 + util.manhattanDistance(start, state) * .5
     
-    'Expended nodes on Medium Size: 1145'
+    'Expended nodes on Medium Size: 1145 (number of walls + euclidiean distance)'
     #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .4 + euclideanHeuristicToPoint(start, state) * .4
     
-    'Expended nodes on Medium Size: 743'
+    'Expended nodes on Medium Size: 743 (Manhattan distance + Euclidiean Distance)'
     #metric_func = lambda start, state: util.manhattanDistance(start, state) * .5 + euclideanHeuristicToPoint(start, state) * .5
 
 
