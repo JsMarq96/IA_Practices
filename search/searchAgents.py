@@ -401,57 +401,6 @@ def numberOfWalls(point_1, point_2, walls):
 
     return n_walls
 
-def cornersHeuristicALT(state, problem):
-    """
-    A heuristic for the CornersProblem that you defined.
-
-      state:   The current search state
-               (a data structure you chose in your search problem)
-
-      problem: The CornersProblem instance for this layout.
-
-    This function should always return a number that is a lower bound on the
-    shortest path from the state to a goal of the problem; i.e.  it should be
-    admissible (as well as consistent).
-    """
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
-
-    #metric_func = euclideanHeuristicToPoint
-    metric_func = util.manhattanDistance
-    #metric_func = lambda start, state: numberOfWalls(start, state, walls)
-    #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .5 + util.manhattanDistance(start, state) * .5
-    #metric_func = lambda start, state: numberOfWalls(start, state, walls) * .4 + euclideanHeuristicToPoint(start, state) * .4
-    #metric_func = lambda start, state: util.manhattanDistance(start, state) * .5 + euclideanHeuristicToPoint(start, state) * .5
-
-
-    unvisited_corners = [x for x in corners if not x in state[0]]
-
-    total_heuristic = 0.
-
-    queue = util.PriorityQueue()
-
-    queue.push( ([state[1]], 0), 0 )
-
-    min_heuristic = 9999
-    while not queue.isEmpty():
-        state_list, cost = queue.pop()
-
-        if len(state_list) == len(unvisited_corners):
-            return cost
-            '''if cost < min_heuristic:
-                min_heuristic = cost'''
-
-        unvisited_corners = [x for x in corners if not x in state_list]
-
-        for new_corner in unvisited_corners:
-            new_state_cost = metric_func(state_list[-1], new_corner)
-            queue.push( (state_list + [new_corner], cost + new_state_cost), cost + new_state_cost)
-
-
-    return min_heuristic # Default to trivial solution
-
-
 def cornersHeuristic(state, problem):
     """
     A heuristic for the CornersProblem that you defined.
