@@ -73,8 +73,54 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
+        ghost_positions = [g_state.getPosition()  for g_state in successorGameState.getGhostStates()]
+        print("food", newFood.asList())
+        print("curr_pos ", newPos)
+        print("Ghost_state ", ghost_positions)
+        print("new scare time ", newScaredTimes)
+
+        food_dist  = [manhattanDistance(newPos, x) for x in newFood.asList()]
+        
+        food_dist.sort()
+
+        print(food_dist)
+
+        def ghost_mapping_func(ghost_pos, scare_time):
+          ghost_score = 0
+          dist = manhattanDistance(newPos, ghost_pos)
+          if scare_time > dist:
+            return 0
+          if dist <= 4.0:
+            return -dist * 5
+          return dist
+
+        ghost_states = zip(ghost_positions, newScaredTimes)
+
+        ghost_dist  = [ghost_mapping_func(pos, scare) for pos, scare in ghost_states]
+
+        food_total_nearest_distance = sum(food_dist[:len(ghost_dist)])
+        food_total_furthest_distance = sum(food_dist[(len(food_dist) - len(ghost_dist)) :])
+        ghost_total_distance = min(ghost_dist)
+
+        #score = successorGameState.getScore() + food_total_nearest_distance * 0.5 + food_total_furthest_distance *0.5  + ghost_total_distance
+        score = successorGameState.getScore() * 0.6 + (sum(food_dist)/len(food_dist)) * 1.5 + ghost_total_distance + food_total_nearest_distance
+
+
+        print("score ", score)
+        print("avg sfood", (sum(food_dist)/len(food_dist)))
+        print("food near dist", food_total_nearest_distance)
+        print("food furthers dist", food_total_furthest_distance)
+        print("ghost total distance ", ghost_total_distance)
+        print(successorGameState.getScore())
+
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        #return successorGameState.getScore()
+        return score
+
+
+def manhattanDistance( xy1, xy2 ):
+    "Returns the Manhattan distance between points xy1 and xy2"
+    return abs( xy1[0] - xy2[0] ) + abs( xy1[1] - xy2[1] )
 
 def scoreEvaluationFunction(currentGameState):
     """
