@@ -178,8 +178,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
+        memmory = {}
 
         def minimaxSearch(node, depth, agent):
+          # Dynamic programing optimization
+          if node in memmory:
+            return memmory[node]
+
           act_list = node.getLegalActions(agent)
           # Terminal node
           if depth > self.depth or act_list == []:
@@ -197,12 +202,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
           else:
             result = min(score_list)
 
+          # Store the result in the memory
+          memmory[node] = result[0], result[1]
+
           return result[0], result[1]
 
         return minimaxSearch(gameState, 0, 0)[1]
 
 
-        
+
         stack = [(None, gameState, 0)]
 
         agents = range(gameState.getNumAgents())
