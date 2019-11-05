@@ -188,51 +188,54 @@ class MinimaxAgent(MultiAgentSearchAgent):
         tree = {}
         node_value = {}
 
+        # Generate Game Tree
         while len(stack) > 0:
           package_state = stack.pop()
-          parent_state, curr_game_state, state_depth = package_state
+          action_state, curr_game_state, state_depth = package_state
           act_list = curr_game_state.getLegalActions(agents[agent_id])
 
-          state_list = [curr_game_state.generateSuccessor(agents[agent_id], act) for act in act_list]
+          state_list = [(curr_game_state.generateSuccessor(agents[agent_id], act), act) for act in act_list]
 
           tree[curr_game_state] = state_list
 
           # If we reached the maximun depth, we stop adding new elements to the stack
-          if state_list == []:
-            #print()
-            # Backtracking
-            node_value[curr_game_state] = curr_game_state.getScore()
-            it_state = parent_state
-
-            prev_state_cost = node_value[curr_game_state]
-
-            while it_state != None:
-              it_state, state, _ = it_state
-              
-              if not state in node_value:
-                node_value[state] = prev_state_cost
-              else:
-                
-
+          if self.depth > state_depth and state_list != []:
+            for new_state, action_to_state in state_list:
+              stack.append((action_to_state, new_state, state_depth + 1))
 
           else:
-            for new_state in state_list:
-              stack.append((package_state, new_state, state_depth + 1))
+            # Add the nodes as leafs to the tree
+            for new_state, action_to_state in state_list:
+              tree[new_state] = []
 
           # Switching the agents, to calculate the game tree
           agent_id += 1
           if agent_id == gameState.getNumAgents():
             agent_id = 0
 
-        print(tree)
+        result = getBestAction(gameState, 0, tree)
 
-        it_tree = None
-        max_round = True
+        return result[1]
 
+def getBestAction(node, agent_id, tree):
+  if tree[node] == []:
+    return node.getScore(), None
 
+  new_agent_id = agent_id + 1
+  if new_agent_id == node.getNumAgents():
+    new_agent_id = 0
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+  score_list = [ (getBestAction(it_node, new_agent_id, tree)[0], node_act) for it_node, node_act in tree[node] ]
+
+  if agent_id == 0: # If the depth is even, then it's a Max choice
+    #print('max', max(score_list), agent_id, score_list)
+    result =  max(score_list)
+  else:
+    #print('min', min(score_list), agent_id, score_list)
+    result = min(score_list)
+
+  return result[0], result[1]
+    
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
