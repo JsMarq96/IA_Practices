@@ -152,6 +152,10 @@ class MultiAgentSearchAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
 
+class TreeNode:
+  def __init__(self):
+    self.successsors = []
+
 class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
@@ -174,6 +178,59 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
+        stack = [(None, gameState, 0)]
+
+        agents = range(gameState.getNumAgents())
+        agent_id = 0
+
+        curr_depth = 0
+
+        tree = {}
+        node_value = {}
+
+        while len(stack) > 0:
+          package_state = stack.pop()
+          parent_state, curr_game_state, state_depth = package_state
+          act_list = curr_game_state.getLegalActions(agents[agent_id])
+
+          state_list = [curr_game_state.generateSuccessor(agents[agent_id], act) for act in act_list]
+
+          tree[curr_game_state] = state_list
+
+          # If we reached the maximun depth, we stop adding new elements to the stack
+          if state_list == []:
+            #print()
+            # Backtracking
+            node_value[curr_game_state] = curr_game_state.getScore()
+            it_state = parent_state
+
+            prev_state_cost = node_value[curr_game_state]
+
+            while it_state != None:
+              it_state, state, _ = it_state
+              
+              if not state in node_value:
+                node_value[state] = prev_state_cost
+              else:
+                
+
+
+          else:
+            for new_state in state_list:
+              stack.append((package_state, new_state, state_depth + 1))
+
+          # Switching the agents, to calculate the game tree
+          agent_id += 1
+          if agent_id == gameState.getNumAgents():
+            agent_id = 0
+
+        print(tree)
+
+        it_tree = None
+        max_round = True
+
+
+
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
