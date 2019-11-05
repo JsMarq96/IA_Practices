@@ -188,14 +188,19 @@ class MinimaxAgent(MultiAgentSearchAgent):
           act_list = node.getLegalActions(agent)
           # Terminal node
           if depth > self.depth or act_list == []:
-            return node.getScore(), None
+            return self.evaluationFunction(node), None
 
           next_agent = agent + 1
           if next_agent == node.getNumAgents():
             next_agent = 0
           
+          if agent == 0:
+            new_depth = depth +1
+          else:
+            new_depth = depth + 1
+
           state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
-          score_list = [ (minimaxSearch(state, depth + 1, next_agent)[0], act) for state, act in state_list ]
+          score_list = [ (minimaxSearch(state, new_depth, next_agent)[0], act) for state, act in state_list ]
 
           if agent == 0: # Max meassure
             result = max(score_list)
@@ -281,8 +286,50 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        AB = [-99999 ,99999]
+
+        def ABPrunningSearch(node, depth, agent):
+          '''
+          '''
+          def ABAssigment(state_s, new_depth_s, next_agent_s):
+            '''
+            Function that handles the calculation of a state, and the assignation of the alpha beta values
+            '''
+            state_score, action = ABPrunningSearch(state_s, new_depth_s, next_agent_s)
+            if agent == 0:
+              AB[0] = state_score
+            else:
+              AB[1] = state_score
+
+            return state_score, action 
+
+          # Dynamic programing optimization
+          act_list = node.getLegalActions(agent)
+          # Terminal node
+          if depth > self.depth or act_list == []:
+            return self.evaluationFunction(node), None
+
+          next_agent = agent + 1
+          if next_agent == node.getNumAgents():
+            next_agent = 0
+          
+          if agent == 0:
+            new_depth = depth + 1
+          else:
+            new_depth = depth + 1
+
+          state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
+          # Very similar to the standart minmax function, but with a condition added in order to prune
+          score_list = [ (ABAssigment(state, new_depth, next_agent)[0], act) for state, act in state_list if AB[1] > AB[0]]
+          
+          if agent == 0: # Max meassure
+            result = max(score_list)
+          else:
+            result = min(score_list)
+
+          return result[0], result[1]
+
+        return ABPrunningSearch(gameState, 0, 0)[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
