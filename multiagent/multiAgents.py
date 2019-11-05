@@ -178,6 +178,31 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
+
+        def minimaxSearch(node, depth, agent):
+          act_list = node.getLegalActions(agent)
+          # Terminal node
+          if depth > self.depth or act_list == []:
+            return node.getScore(), None
+
+          next_agent = agent + 1
+          if next_agent == node.getNumAgents():
+            next_agent = 0
+          
+          state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
+          score_list = [ (minimaxSearch(state, depth + 1, next_agent)[0], act) for state, act in state_list ]
+
+          if agent == 0: # Max meassure
+            result = max(score_list)
+          else:
+            result = min(score_list)
+
+          return result[0], result[1]
+
+        return minimaxSearch(gameState, 0, 0)[1]
+
+
+        
         stack = [(None, gameState, 0)]
 
         agents = range(gameState.getNumAgents())
@@ -206,6 +231,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
           else:
             # Add the nodes as leafs to the tree
             for new_state, action_to_state in state_list:
+
               tree[new_state] = []
 
           # Switching the agents, to calculate the game tree
@@ -219,6 +245,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 def getBestAction(node, agent_id, tree):
   if tree[node] == []:
+    print("term node", node, node.getScore())
     return node.getScore(), None
 
   new_agent_id = agent_id + 1
@@ -235,7 +262,7 @@ def getBestAction(node, agent_id, tree):
     result = min(score_list)
 
   return result[0], result[1]
-    
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
