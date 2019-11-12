@@ -187,17 +187,16 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
           act_list = node.getLegalActions(agent)
           # Terminal node
-          if depth > self.depth or act_list == []:
+          if depth == 0 or act_list == []:
             return self.evaluationFunction(node), None
 
+          # Increment the agent
           next_agent = agent + 1
           if next_agent == node.getNumAgents():
             next_agent = 0
-          
-          if agent == 0:
-            new_depth = depth +1
+            new_depth = depth - 1
           else:
-            new_depth = depth + 1
+            new_depth = depth
 
           state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
           score_list = [ (minimaxSearch(state, new_depth, next_agent)[0], act) for state, act in state_list ]
@@ -212,7 +211,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
           return result[0], result[1]
 
-        return minimaxSearch(gameState, 0, 0)[1]
+        return minimaxSearch(gameState, self.depth, 0)[1]
 
 
 
