@@ -83,12 +83,15 @@ class ReflexAgent(Agent):
         if len(food_dist) == 0:
           fd = 0.01
         else:
-          fd = (food_dist[len(food_dist)-1] - food_dist[0]) * 0.50
+          #fd = (food_dist[len(food_dist)-1] - food_dist[0]) * 0.50
+          fd = food_dist[len(food_dist)/2]
 
         
-        ghost_dist = [-1. * manhattanDistance(newPos, x) for x in ghost_positions if manhattanDistance(newPos, x) < 3]
+        ghost_dist = [-1.5 * manhattanDistance(newPos, x) for x in ghost_positions if manhattanDistance(newPos, x) < 3]
 
-        score = - len(newFood.asList()) * 0.5 + (len(newScaredTimes) * 0.3) + (fd) * 0.25 + (sum(ghost_dist)/len(ghost_positions) * 0.3)
+        # + (fd) * 0.25
+        # (len(newScaredTimes) * 0.3)
+        score = - len(newFood.asList()) * 0.5 + (sum(ghost_dist) * 2) 
         
         return score
 
