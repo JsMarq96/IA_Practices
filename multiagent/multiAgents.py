@@ -297,7 +297,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         from random import seed, randint
-        
+
         def expectimax(node, depth, agent):
           act_list = node.getLegalActions(agent)
           # Terminal node
@@ -313,14 +313,16 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             new_depth = depth
 
           state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
-          score_list = [ minimaxSearch(state, new_depth, next_agent) for state, act in state_list ]
+          score_list = [ expectimax(state, new_depth, next_agent) for state, act in state_list ]
 
           if agent == 0: # Max meassure
             result = max(score_list)
           else:
             result = .0
+            #t = randint(1, len(score_list))
+            t = len(score_list)
             for score in score_list:
-              result += score * 1./len(score_list)
+              result += score * 1./t
           return result
 
         total_act = [(expectimax(gameState.generateSuccessor(0, act), self.depth, 1), act) for act in gameState.getLegalActions(0)]
