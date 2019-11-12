@@ -213,48 +213,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         return minimaxSearch(gameState, self.depth, 0)[1]
 
-
-
-        stack = [(None, gameState, 0)]
-
-        agents = range(gameState.getNumAgents())
-        agent_id = 0
-
-        curr_depth = 0
-
-        tree = {}
-        node_value = {}
-
-        # Generate Game Tree
-        while len(stack) > 0:
-          package_state = stack.pop()
-          action_state, curr_game_state, state_depth = package_state
-          act_list = curr_game_state.getLegalActions(agents[agent_id])
-
-          state_list = [(curr_game_state.generateSuccessor(agents[agent_id], act), act) for act in act_list]
-
-          tree[curr_game_state] = state_list
-
-          # If we reached the maximun depth, we stop adding new elements to the stack
-          if self.depth > state_depth and state_list != []:
-            for new_state, action_to_state in state_list:
-              stack.append((action_to_state, new_state, state_depth + 1))
-
-          else:
-            # Add the nodes as leafs to the tree
-            for new_state, action_to_state in state_list:
-
-              tree[new_state] = []
-
-          # Switching the agents, to calculate the game tree
-          agent_id += 1
-          if agent_id == gameState.getNumAgents():
-            agent_id = 0
-
-        result = getBestAction(gameState, 0, tree)
-
-        return result[1]
-
 def getBestAction(node, agent_id, tree):
   if tree[node] == []:
     print("term node", node, node.getScore())
