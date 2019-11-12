@@ -241,52 +241,48 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     def getAction(self, gameState):
         """
-          Returns the minimax action using self.depth and self.evaluationFunction
+        17
         """
-        AB = [-99999 ,99999]
-
-        def ABPrunningSearch(node, depth, agent):
-          '''
-          '''
-          def ABAssigment(state_s, new_depth_s, next_agent_s):
-            '''
-            Function that handles the calculation of a state, and the assignation of the alpha beta values
-            '''
-            state_score, action = ABPrunningSearch(state_s, new_depth_s, next_agent_s)
-            if agent == 0:
-              AB[0] = state_score
-            else:
-              AB[1] = state_score
-
-            return state_score, action 
-
-          # Dynamic programing optimization
+        def minimaxSearch(node, depth, alpha, beta, agent):
           act_list = node.getLegalActions(agent)
           # Terminal node
-          if depth > self.depth or act_list == []:
+          if depth == 0 or act_list == []:
             return self.evaluationFunction(node), None
 
+          # Increment the agent
           next_agent = agent + 1
           if next_agent == node.getNumAgents():
             next_agent = 0
-          
-          if agent == 0:
-            new_depth = depth + 1
+            new_depth = depth - 1
           else:
-            new_depth = depth + 1
+            new_depth = depth
 
           state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
-          # Very similar to the standart minmax function, but with a condition added in order to prune
-          score_list = [ (ABAssigment(state, new_depth, next_agent)[0], act) for state, act in state_list if AB[1] > AB[0]]
           
-          if agent == 0: # Max meassure
-            result = max(score_list)
+          if agent == 0:
+            val = (-9999, None)
+            for state, act in state_list:
+              eval, _ = minimaxSearch(state, new_depth, alpha, beta, next_agent)
+
+              val = max((eval, act), val)
+              alpha = max(eval, alpha)
+
+              if beta <= alpha:
+                break
+            return val
           else:
-            result = min(score_list)
+            val = (9999, None)
+            for state, act in state_list:
+              eval, _ = minimaxSearch(state, new_depth, alpha, beta, next_agent)
 
-          return result[0], result[1]
+              val = min((eval, act), val)
+              beta = min(eval, beta)
 
-        return ABPrunningSearch(gameState, 0, 0)[1]
+              if beta <= alpha:
+                break
+            return val
+
+        return minimaxSearch(gameState, self.depth, -9999, 9999, 0)[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -300,8 +296,36 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        from random import seed, randint
+        
+        def expectimax(node, depth, agent):
+          act_list = node.getLegalActions(agent)
+          # Terminal node
+          if depth == 0 or act_list == []:
+            return self.evaluationFunction(node)
+
+          # Increment the agent
+          next_agent = agent + 1
+          if next_agent == node.getNumAgents():
+            next_agent = 0
+            new_depth = depth - 1
+          else:
+            new_depth = depth
+
+          state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
+          score_list = [ minimaxSearch(state, new_depth, next_agent) for state, act in state_list ]
+
+          if agent == 0: # Max meassure
+            result = max(score_list)
+          else:
+            result = .0
+            for score in score_list:
+              result += score * 1./len(score_list)
+          return result
+
+        total_act = [(expectimax(gameState.generateSuccessor(0, act), self.depth, 1), act) for act in gameState.getLegalActions(0)]
+        
+        return max(total_act)[1]
 
 def betterEvaluationFunction(currentGameState):
     """
