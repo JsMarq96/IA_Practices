@@ -219,13 +219,13 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     def getAction(self, gameState):
         """
-        17
+        9
         """
-        def minimaxSearch(node, depth, alpha, beta, agent):
+        def ABPSearch(node, depth, alpha, beta, agent):
           act_list = node.getLegalActions(agent)
           # Terminal node
           if depth == 0 or act_list == []:
-            return self.evaluationFunction(node), None
+            return self.evaluationFunction(node)
 
           # Increment the agent
           next_agent = agent + 1
@@ -234,33 +234,28 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             new_depth = depth - 1
           else:
             new_depth = depth
-
-          state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
           
           if agent == 0:
-            val = (-9999, None)
-            for state, act in state_list:
-              eval, _ = minimaxSearch(state, new_depth, alpha, beta, next_agent)
-
-              val = max((eval, act), val)
+            for act in act_list:
+              new_state = node.generateSuccessor(agent, act)
+              eval = ABPSearch(new_state, new_depth, alpha, beta, next_agent)
               alpha = max(eval, alpha)
 
               if beta <= alpha:
                 break
-            return val
+            return alpha
           else:
-            val = (9999, None)
-            for state, act in state_list:
-              eval, _ = minimaxSearch(state, new_depth, alpha, beta, next_agent)
-
-              val = min((eval, act), val)
+            for act in act_list:
+              new_state = node.generateSuccessor(agent, act)
+              eval = ABPSearch(new_state, new_depth, alpha, beta, next_agent)
               beta = min(eval, beta)
 
               if beta <= alpha:
                 break
-            return val
+            return beta
 
-        return minimaxSearch(gameState, self.depth, -9999, 9999, 0)[1]
+        total_act = [(ABPSearch(gameState.generateSuccessor(0, act), self.depth, -9999, 9999, 1), act) for act in gameState.getLegalActions(0)]
+        return max(total_act)[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -274,7 +269,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        from random import seed, randint
+        from random import seed, randint, random
 
         def expectimax(node, depth, agent):
           act_list = node.getLegalActions(agent)
@@ -297,10 +292,12 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             result = max(score_list)
           else:
             result = .0
-            #t = randint(1, len(score_list))
-            t = len(score_list)
+            #t = 1./randint(1, len(score_list))
+            t = 1./len(score_list)
+            #t = 1./5
+            #t = random()
             for score in score_list:
-              result += score * 1./t
+              result += score * t
           return result
 
         total_act = [(expectimax(gameState.generateSuccessor(0, act), self.depth, 1), act) for act in gameState.getLegalActions(0)]
@@ -314,8 +311,39 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def DFS():
+      """
+      Container of the default behaviour of the search problem, but with a abstraction
+      in the data strucutre part, in order to rehutilize this code in the multiple search
+      algortitmhs, like DFS and BFS.
+      The parameters are the problem, the start state and the actions of the data struct.
+      """
+      stack = util.Stack(pos)
+      visited = set()
+
+      stack.push( (start_state, [], 0) )
+
+      while not stack.isEmpty():
+          c_node, act_list, current_cost = stack.pop()
+
+          if problem.isGoalState(c_node):
+              return act_list
+
+          if c_node not in visited:
+              for child, child_action, cost in problem.getSuccessors(c_node):
+                  if child not in visited:
+                      stack.push((child, act_list + [ child_action ], current_cost + cost))
+
+              visited.add(c_node)
+      return None
+
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+    ghost_positions = [g_state.getPosition()  for g_state in currentGameState.getGhostStates()]
+
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction
