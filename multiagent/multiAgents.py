@@ -87,7 +87,7 @@ class ReflexAgent(Agent):
           fd = food_dist[len(food_dist)/2]
 
         
-        ghost_dist = [-1.5 * manhattanDistance(newPos, x) for x in ghost_positions if manhattanDistance(newPos, x) < 3]
+        ghost_dist = [-9999 for x in ghost_positions if manhattanDistance(newPos, x) < 3]
 
         # + (fd) * 0.25
         # (len(newScaredTimes) * 0.3)
@@ -156,12 +156,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        memmory = {}
-
         def minimaxSearch(node, depth, agent):
           # Dynamic programing optimization
-          if node in memmory:
-            return memmory[node]
 
           act_list = node.getLegalActions(agent)
           # Terminal node
@@ -183,9 +179,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
             result = max(score_list)
           else:
             result = min(score_list)
-
-          # Store the result in the memory
-          memmory[node] = result[0], result[1]
 
           return result[0], result[1]
 
