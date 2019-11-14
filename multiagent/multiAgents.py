@@ -77,22 +77,69 @@ class ReflexAgent(Agent):
 
         food_dist  = [manhattanDistance(newPos, x) for x in newFood.asList()]
         
-        food_dist.sort()
+        #food_dist.sort()
 
         #food_dist[len(food_dist)] - food_dist[0]
         if len(food_dist) == 0:
           fd = 0.01
         else:
           #fd = (food_dist[len(food_dist)-1] - food_dist[0]) * 0.50
-          fd = food_dist[len(food_dist)/2]
+          fd = min(food_dist)
 
-        
-        ghost_dist = [-9999 for x in ghost_positions if manhattanDistance(newPos, x) < 3]
+        ghost_dist = [manhattanDistance(newPos, x) for x in ghost_positions]
 
         # + (fd) * 0.25
         # (len(newScaredTimes) * 0.3)
-        score = - len(newFood.asList()) * 0.5 + (sum(ghost_dist) * 2) 
-        
+
+        score = -len(newFood.asList()) #* -0.3 #+ (sum(ghost_dist))
+
+        # Emergency Ghost
+        # Socre 424.8 no fails
+        very_near_ghost = sum([ -99  for x in ghost_dist if x < 2])
+
+        # score 188.2 no fails
+        # ghost_stats = zip(ghost_dist, newScaredTimes)
+        # very_near_ghost = sum([ -999  for x, y in ghost_stats if x < 2 and y <= 2])
+
+        # score 154 4 loses 1/4
+        #very_near_ghost = sum([ -999  for x, y in ghost_stats if x < 4 and y <= 2])
+
+        # 408 2 fails
+        # very_near_ghost = sum([ -999  for x, y in ghost_stats if x < 3 and y <= 5])
+
+
+        nearest_ghost = min(ghost_dist)
+
+        '''
+        # Score 204.5 No fail
+        if nearest_ghost > 6:
+          nearest_ghost = 999
+        else:
+          nearest_ghost = 0
+        '''
+
+        # Score 507.7 No fail
+        if nearest_ghost >= 6:
+          nearest_ghost = 999
+        else:
+          nearest_ghost = 0
+
+        nearest_coin = 0
+        if len(food_dist) > 0:
+          nearest_coin = min(food_dist)
+
+          if nearest_coin < 3:
+            nearest_coin = 9
+          else:
+            nearest_coin = 0
+
+        score += very_near_ghost #* 1.6
+        score += nearest_ghost
+        #score += nearest_coin
+
+        #print(very_near_ghost, nearest_ghost, min(food_dist), food_dist)
+        #score = very_near_ghost + fd * 999.
+
         return score
 
 
@@ -162,7 +209,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
           act_list = node.getLegalActions(agent)
           # Terminal node
           if depth == 0 or act_list == []:
-            return self.evaluationFunction(node), None
+            return self.evaluationFunction(node)
 
           # Increment the agent
           next_agent = agent + 1
@@ -173,15 +220,17 @@ class MinimaxAgent(MultiAgentSearchAgent):
             new_depth = depth
 
           state_list = [(node.generateSuccessor(agent, act), act) for act in act_list]
-          score_list = [ (minimaxSearch(state, new_depth, next_agent)[0], act) for state, act in state_list ]
+          score_list = [ minimaxSearch(state, new_depth, next_agent) for state, act in state_list ]
 
           if agent == 0: # Max meassure
             result = max(score_list)
           else:
             result = min(score_list)
 
-          return result[0], result[1]
+          return result
 
+        total_act = [(minimaxSearch(gameState.generateSuccessor(0, act), self.depth, 1), act) for act in gameState.getLegalActions(0)]
+        return max(total_act)[1]
         return minimaxSearch(gameState, self.depth, 0)[1]
 
 def getBestAction(node, agent_id, tree):
@@ -212,9 +261,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     def getAction(self, gameState):
         """
-        9
         """
-        def ABPSearch(node, depth, alpha, beta, agent):
+        def ABSearch(node, depth, alpha, beta, agent):
+          # Dynamic programing optimization
+
           act_list = node.getLegalActions(agent)
           # Terminal node
           if depth == 0 or act_list == []:
@@ -227,27 +277,28 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             new_depth = depth - 1
           else:
             new_depth = depth
-          
-          if agent == 0:
-            for act in act_list:
-              new_state = node.generateSuccessor(agent, act)
-              eval = ABPSearch(new_state, new_depth, alpha, beta, next_agent)
-              alpha = max(eval, alpha)
 
-              if beta <= alpha:
-                break
-            return alpha
+          if agent == 0: # Max meassure
+            result = -9999
+            for act in act_list:
+              state = node.generateSuccessor(agent, act)
+              result = max(result, ABSearch(state, new_depth, alpha, beta, next_agent))
+              if result > beta:
+                return result
+              alpha = max(result, alpha)
+              
           else:
+            result = 9999
             for act in act_list:
-              new_state = node.generateSuccessor(agent, act)
-              eval = ABPSearch(new_state, new_depth, alpha, beta, next_agent)
-              beta = min(eval, beta)
+              state = node.generateSuccessor(agent, act)
+              result = min(result, ABSearch(state, new_depth, alpha, beta, next_agent))
+              if result < alpha:
+                return result
+              beta = min(result, beta)
 
-              if beta <= alpha:
-                break
-            return beta
+          return result
 
-        total_act = [(ABPSearch(gameState.generateSuccessor(0, act), self.depth, -9999, 9999, 1), act) for act in gameState.getLegalActions(0)]
+        total_act = [(ABSearch(gameState.generateSuccessor(0, act), self.depth, -9999, 9999, 1), act) for act in gameState.getLegalActions(0)]
         return max(total_act)[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
