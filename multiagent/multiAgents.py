@@ -355,37 +355,78 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    def DFS():
-      """
-      Container of the default behaviour of the search problem, but with a abstraction
-      in the data strucutre part, in order to rehutilize this code in the multiple search
-      algortitmhs, like DFS and BFS.
-      The parameters are the problem, the start state and the actions of the data struct.
-      """
-      stack = util.Stack(pos)
-      visited = set()
-
-      stack.push( (start_state, [], 0) )
-
-      while not stack.isEmpty():
-          c_node, act_list, current_cost = stack.pop()
-
-          if problem.isGoalState(c_node):
-              return act_list
-
-          if c_node not in visited:
-              for child, child_action, cost in problem.getSuccessors(c_node):
-                  if child not in visited:
-                      stack.push((child, act_list + [ child_action ], current_cost + cost))
-
-              visited.add(c_node)
-      return None
-
+    # 3/6 8 wins score -239
     newPos = currentGameState.getPacmanPosition()
     newFood = currentGameState.getFood()
     newGhostStates = currentGameState.getGhostStates()
     newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
     ghost_positions = [g_state.getPosition()  for g_state in currentGameState.getGhostStates()]
+
+
+    food_dist  = [manhattanDistance(newPos, x) for x in newFood.asList()]
+
+    if len(food_dist) == 0:
+      fd = 0.01
+    else:
+      fd = min(food_dist)
+
+    ghost_dist = [manhattanDistance(newPos, x) for x in ghost_positions]
+
+    very_near_ghost = sum([ -99  for x in ghost_dist if x < 2])
+    nearest_ghost = min(ghost_dist)
+    if nearest_ghost >= 6:
+      nearest_ghost = 999
+    else:
+      nearest_ghost = 0
+
+    nearest_coin = 0
+    if len(food_dist) > 0:
+      nearest_coin = min(food_dist)
+
+      if nearest_coin < 3:
+        nearest_coin = 9
+      else:
+        nearest_coin = 0
+
+    score = -len(newFood.asList()) #* -0.3 #+ (sum(ghost_dist))
+    score += very_near_ghost #* 1.6
+    score += nearest_ghost
+    #score += nearest_coin
+
+    return score
+    # 3/6 8 wins score -239
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+    ghost_positions = [g_state.getPosition()  for g_state in newGhostStates]
+
+
+    food_dist  = [manhattanDistance(newPos, x) for x in newFood.asList()]
+
+    ghost_dist = [manhattanDistance(newPos, x) for x in ghost_positions]
+
+    #very_near_ghost = sum([ -99  for x in ghost_dist if x <= 2])
+
+    ghost_stats = zip(ghost_dist, newScaredTimes)
+    very_near_ghost = sum([ -99  for x, y in ghost_stats if x < 3 and y <= 3])
+    
+    nearest_ghost = min(ghost_dist)
+    if nearest_ghost >= 6:
+      nearest_ghost = 999
+    else:
+      nearest_ghost = 0
+
+    nearest_coin = 0
+    if len(food_dist) > 0:
+      fd = sum([ 99  for x in food_dist if x <= 2])
+    else:
+      fd = 0.
+
+    score = -len(newFood.asList()) #* -0.3 #+ (sum(ghost_dist))
+    score += very_near_ghost * .6
+    score += nearest_ghost
+    score += fd
 
     return score
 
