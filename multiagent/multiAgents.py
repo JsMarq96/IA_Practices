@@ -341,8 +341,9 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             #t = 1./5
             #t = random()
             for score in score_list:
-              result += score * 1./len(score_list)
-              #result += score * t
+              #result += score * 1./randint(1, len(score_list))
+              #result += score * 1./len(score_list)
+              result += score * t
           return result
 
         total_act = [(expectimax(gameState.generateSuccessor(0, act), self.depth, 1), act) for act in gameState.getLegalActions(0)]
