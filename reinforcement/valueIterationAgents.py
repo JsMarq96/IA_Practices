@@ -26,26 +26,22 @@ class ValueIterationAgent(ValueEstimationAgent):
         discount factor.
     """
     def __init__(self, mdp, discount = 0.9, iterations = 100):
-        """
-          Your value iteration agent should take an mdp on
-          construction, run the indicated number of iterations
-          and then act according to the resulting policy.
 
-          Some useful mdp methods you will use:
-              mdp.getStates()
-              mdp.getPossibleActions(state)
-              mdp.getTransitionStatesAndProbs(state, action)
-              mdp.getReward(state, action, nextState)
-              mdp.isTerminal(state)
-        """
         self.mdp = mdp
         self.discount = discount
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
 
         # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        print(mdp.getStates())
+        print(self.values)
+        for state in mdp.getStates():
+          for action in mdp.getPossibleActions(state):
+            print(mdp.getTransitionStatesAndProbs(state, action), state)
 
+
+        "*** YOUR CODE HERE ***"
+        util.raiseNotDefined()
 
     def getValue(self, state):
         """
@@ -59,6 +55,14 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
+        result = []
+        for action in self.mdp.getPossibleActions():
+          for next_state, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+            reward = self.mdp.getReward(state, action, next_state)
+            reward += self.discount * self.values(next_state)
+            result.append(reward * prob)
+
+        return sum(result)
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
@@ -71,6 +75,14 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
+        result = []
+        for action in self.mdp.getPossibleActions():
+          for next_state, prob in self.mdp.getTransitionStatesAndProbs(state, action):
+            reward = self.mdp.getReward(state, action, next_state)
+            reward += self.discount * self.values(next_state)
+            result.append(reward * prob)
+
+        return max(result)
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
