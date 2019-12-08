@@ -15,6 +15,7 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
+from util import Counter
 
 import random,util,math
 
@@ -42,7 +43,7 @@ class QLearningAgent(ReinforcementAgent):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
 
-        counter = 0
+        self.counter = util.Counter()
 
         "*** YOUR CODE HERE ***"
 
@@ -56,15 +57,7 @@ class QLearningAgent(ReinforcementAgent):
         # if (lastState = zero) return 0.0
         #(1-self.alpha)*getQValue(state,action) + self.alpha * difference
 
-        if (counter == 0):
-          return 0.0
-
-
-        counter = counter+1
-        print(counter)
-
-        return getQValue(state,action) # difference
-        
+        return self.counter[state, action]
 
 
     def computeValueFromQValues(self, state):
@@ -94,7 +87,7 @@ class QLearningAgent(ReinforcementAgent):
         """
         if not self.getLegalActions(state):
           return None
-
+        result = []
         for action in self.getLegalActions(state):
           result.append((self.getQValue(state,action), action))
 
@@ -131,7 +124,7 @@ class QLearningAgent(ReinforcementAgent):
         """
         #getQValue(state,action) = (1-self.alpha)*getQValue(state,action) + self.alpha*(self.reward + self.discount*computeValueFromQValues(nextState))
 
-        getQValue(state,action) = self.alpha * reward + self.discount * computeValueFromQValues(state)
+        self.counter[state, action] = (1 - self.alpha) * self.counter[state, action] + ( self.alpha  * (reward + (self.discount * self.computeValueFromQValues(nextState))))
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
