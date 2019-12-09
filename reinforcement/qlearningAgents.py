@@ -44,8 +44,6 @@ class QLearningAgent(ReinforcementAgent):
 
         self.counter = util.Counter()
 
-        "*** YOUR CODE HERE ***"
-
     def getQValue(self, state, action):
         """
           Returns Q(state,action)
@@ -116,8 +114,6 @@ class QLearningAgent(ReinforcementAgent):
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-        # getQValue(state,action) = (1-self.alpha)*getQValue(state,action) + self.alpha*(self.reward + self.discount*computeValueFromQValues(nextState))
-
         self.counter[state, action] = (1 - self.alpha) * self.counter[state, action] + (
                     self.alpha * (reward + (self.discount * self.computeValueFromQValues(nextState))))
 
@@ -181,8 +177,6 @@ class ApproximateQAgent(PacmanQAgent):
           where * is the dotProduct operator
         """
         return self.weights * self.featExtractor.getFeatures(state, action)
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
 
     def update(self, state, action, nextState, reward):
         """
@@ -190,12 +184,10 @@ class ApproximateQAgent(PacmanQAgent):
         """
 
         features = self.featExtractor.getFeatures(state, action)
+        diff = (reward + self.discount * self.computeValueFromQValues(nextState)) - self.getQValue(state, action)
 
         for i in features:
-          diff = (reward + self.discount * self.computeValueFromQValues(nextState)) - self.getQValue(state, action)
           self.weights[i] += self.alpha * diff * features[i]
-        "*** YOUR CODE HERE ***"
-        #util.raiseNotDefined()
 
     def final(self, state):
         "Called at the end of each game."
